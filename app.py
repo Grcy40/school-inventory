@@ -3,12 +3,13 @@ import os
 import pandas as pd
 import sqlite3
 
-# ✅ Set up Flask with correct template folder
+# ✅ Initialize Flask app
 app = Flask(__name__, template_folder='templates')
 
+# ✅ SQLite database file
 DATABASE = 'inventory.db'
 
-# ✅ Ensure the database exists
+# ✅ Ensure database table exists
 def init_db():
     with sqlite3.connect(DATABASE) as conn:
         conn.execute('''
@@ -27,7 +28,7 @@ def init_db():
         ''')
 init_db()
 
-# ✅ Homepage route
+# ✅ Home page route
 @app.route('/')
 def index():
     with sqlite3.connect(DATABASE) as conn:
@@ -35,7 +36,7 @@ def index():
         equipment = cursor.fetchall()
     return render_template('index.html', equipment=equipment)
 
-# ✅ Add equipment
+# ✅ Add new equipment
 @app.route('/add', methods=['GET', 'POST'])
 def add_equipment():
     if request.method == 'POST':
@@ -97,33 +98,34 @@ def delete_equipment(id):
         conn.execute('DELETE FROM equipment WHERE id=?', (id,))
     return redirect(url_for('index'))
 
-# ✅ Upload Excel file
+# ✅ Upload Excel
 @app.route('/upload', methods=['GET', 'POST'])
 def upload_excel():
     if request.method == 'POST':
         file = request.files['file']
         if file.filename.endswith('.xlsx'):
             df = pd.read_excel(file, engine='openpyxl')
-            expected_columns = {'model', 'mac_address', 'owner', 'supplier',
-                                'supplier_date', 'warranty', 'lpo_number', 'status', 'specifications'}
-            if set(df.columns) >= expected_columns:
+            expected_columns = [
+                'model', 'mac_address', 'owner', 'supplier',
+                'supplier_date', 'warranty', 'lpo_number', 'status', 'specifications'
+            ]
+            if set(df.columns) >= set(expected_columns):
                 with sqlite3.connect(DATABASE) as conn:
                     for _, row in df.iterrows():
+                        data_tuple = tuple(row[col] for col in expected_columns)
                         conn.execute('''
                             INSERT INTO equipment (
                                 model, mac_address, owner, supplier,
                                 supplier_date, warranty, lpo_number, status, specifications
                             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                        ''', tuple(row[col] for col in expected_columns))
+                        ''', data_tuple)
                 return redirect(url_for('index'))
             else:
                 return "Excel file missing required columns", 400
     return render_template('upload.html')
 
 # ✅ Run the app
-import os
-
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
+    port = int(os.environ.get('PORT', 5000))  # ✅ Needed for Render
     app.run(host='0.0.0.0', port=port, debug=True)
 

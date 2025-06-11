@@ -2,150 +2,171 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>School Inventory</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap" rel="stylesheet">
+    <title>Inventory Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: 'Poppins', sans-serif;
-            background: #f0f2f5;
+            font-family: 'Inter', sans-serif;
             margin: 0;
-            padding: 20px;
-            animation: fadeIn 1s ease-in;
-        }
-
-        h1 {
-            text-align: center;
+            padding: 0;
+            background: #f5f8ff;
             color: #333;
         }
 
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-
-        .top-bar input[type="text"] {
-            padding: 10px;
-            width: 50%;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-        }
-
-        .top-bar a {
-            background-color: #4CAF50;
+        header {
+            background: #4f46e5;
             color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+        }
+
+        .actions {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .actions a {
             text-decoration: none;
+            background: #4f46e5;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
             transition: background 0.3s;
         }
 
-        .top-bar a:hover {
-            background-color: #45a049;
+        .actions a:hover {
+            background: #4338ca;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            margin-top: 10px;
+            overflow-x: auto;
+            animation: fadeIn 0.6s ease-in-out;
         }
 
         th, td {
-            padding: 14px;
-            border-bottom: 1px solid #ddd;
+            padding: 12px 10px;
+            border-bottom: 1px solid #e2e8f0;
             text-align: left;
         }
 
         th {
-            background-color: #f5f5f5;
-            color: #333;
+            background: #e0e7ff;
+            color: #1e3a8a;
         }
 
         tr:hover {
-            background-color: #f9f9f9;
+            background-color: #f1f5f9;
         }
 
-        .action-btns a {
-            margin-right: 8px;
-            padding: 6px 10px;
-            border-radius: 6px;
+        .action-links a {
+            margin-right: 10px;
+            color: #2563eb;
             text-decoration: none;
-            font-size: 14px;
-            color: white;
+            font-weight: 500;
         }
 
-        .edit-btn {
-            background-color: #2196F3;
-        }
-
-        .delete-btn {
-            background-color: #f44336;
+        .action-links a:hover {
+            text-decoration: underline;
         }
 
         @keyframes fadeIn {
-            from {opacity: 0;}
-            to {opacity: 1;}
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media screen and (max-width: 768px) {
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+
+            th, td {
+                padding: 10px;
+            }
+
+            th {
+                background-color: #f0f4ff;
+            }
+
+            tr {
+                margin-bottom: 15px;
+                background: #f9fafb;
+                border-radius: 10px;
+                padding: 10px;
+            }
+
+            .action-links {
+                margin-top: 10px;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>School Inventory</h1>
+    <header>
+        <h1>School Equipment Inventory</h1>
+    </header>
 
-    <div class="top-bar">
-        <input type="text" placeholder="Search..." onkeyup="filterTable(this.value)">
-        <div>
-            <a href="/add">Add Equipment</a>
-            <a href="/upload">Upload Excel</a>
+    <div class="container">
+        <div class="actions">
+            <a href="/add">➕ Add Equipment</a>
+            <a href="/upload">📄 Upload Excel</a>
         </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Model</th>
+                    <th>MAC Address</th>
+                    <th>Owner</th>
+                    <th>Supplier</th>
+                    <th>Supplier Date</th>
+                    <th>Warranty</th>
+                    <th>LPO Number</th>
+                    <th>Status</th>
+                    <th>Specifications</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in equipment %}
+                <tr>
+                    <td>{{ item[0] }}</td>
+                    <td>{{ item[1] }}</td>
+                    <td>{{ item[2] }}</td>
+                    <td>{{ item[3] }}</td>
+                    <td>{{ item[4] }}</td>
+                    <td>{{ item[5] }}</td>
+                    <td>{{ item[6] }}</td>
+                    <td>{{ item[7] }}</td>
+                    <td>{{ item[8] }}</td>
+                    <td>{{ item[9] }}</td>
+                    <td class="action-links">
+                        <a href="/edit/{{ item[0] }}">Edit</a>
+                        <a href="/delete/{{ item[0] }}" onclick="return confirm('Are you sure?')">Delete</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
-
-    <table id="inventoryTable">
-        <thead>
-            <tr>
-                <th>Model</th>
-                <th>MAC Address</th>
-                <th>Owner</th>
-                <th>Supplier</th>
-                <th>Supplier Date</th>
-                <th>Warranty</th>
-                <th>LPO Number</th>
-                <th>Status</th>
-                <th>Specifications</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in items %}
-            <tr>
-                <td>{{ item.model }}</td>
-                <td>{{ item.mac_address }}</td>
-                <td>{{ item.owner }}</td>
-                <td>{{ item.supplier }}</td>
-                <td>{{ item.supplier_date }}</td>
-                <td>{{ item.warranty }}</td>
-                <td>{{ item.lpo_number }}</td>
-                <td>{{ item.status }}</td>
-                <td>{{ item.specifications }}</td>
-                <td class="action-btns">
-                    <a href="/edit/{{ item.id }}" class="edit-btn">Edit</a>
-                    <a href="/delete/{{ item.id }}" class="delete-btn" onclick="return confirm('Delete this item?');">Delete</a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-    <script>
-        function filterTable(query) {
-            const rows = document.querySelectorAll("#inventoryTable tbody tr");
-            rows.forEach(row => {
-                const text = row.innerText.toLowerCase();
-                row.style.display = text.includes(query.toLowerCase()) ? '' : 'none';
-            });
-        }
-    </script>
 </body>
 </html>
