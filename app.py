@@ -1,65 +1,43 @@
 from flask import Flask, render_template, request, redirect, url_for
-import sqlite3
-import pandas as pd
 import os
+import pandas as pd
+import sqlite3
 
-app = Flask(__name__)
+# ✅ Set up Flask with correct template folder
+app = Flask(__name__, template_folder='templates')
+
 DATABASE = 'inventory.db'
-EXCEL_FILE = 'inventory(1).xlsx'
 
+# ✅ Ensure the database exists
+def init_db():
+    with sqlite3.connect(DATABASE) as conn:
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS equipment (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                model TEXT,
+                mac_address TEXT,
+                owner TEXT,
+                supplier TEXT,
+                supplier_date TEXT,
+                warranty TEXT,
+                lpo_number TEXT,
+                status TEXT,
+                specifications TEXT
+            )
+        ''')
+init_db()
 
-def init_db_from_excel():
-    conn = sqlite3.connect(DATABASE)
-    c = conn.cursor()
-
-    # Create table if not exists
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS equipment (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            model TEXT,
-            mac_address TEXT,
-            owner TEXT,
-            supplier TEXT,
-            supplier_date TEXT,
-            warranty TEXT,
-            lpo_number TEXT,
-            status TEXT,
-            specifications TEXT
-        )
-    ''')
-
-    # Check if table is empty
-    c.execute('SELECT COUNT(*) FROM equipment')
-    if c.fetchone()[0] == 0 and os.path.exists(EXCEL_FILE):
-        try:
-            df = pd.read_excel(EXCEL_FILE, engine='openpyxl')
-            expected_cols = {'model', 'mac_address', 'owner', 'supplier', 'supplier_date',
-                             'warranty', 'lpo_number', 'status', 'specifications'}
-            if expected_cols.issubset(set(df.columns)):
-                df.to_sql('equipment', conn, if_exists='append', index=False)
-                print("✅ Data imported from Excel.")
-            else:
-                print(f"⚠️ Missing columns: {expected_cols - set(df.columns)}")
-        except Exception as e:
-            print(f"❌ Excel import failed: {e}")
-    conn.commit()
-    conn.close()
-
-
-init_db_from_excel()
-
-
+# ✅ Homepage route
 @app.route('/')
 def index():
-    conn = sqlite3.connect(DATABASE)
-    conn.row_factory = sqlite3.Row
-    items = conn.execute('SELECT * FROM equipment').fetchall()
-    conn.close()
-    return render_template('index.html', items=items)
+    with sqlite3.connect(DATABASE) as conn:
+        cursor = conn.execute('SELECT * FROM equipment')
+        equipment = cursor.fetchall()
+    return render_template('index.html', equipment=equipment)
 
-
+# ✅ Add equipment
 @app.route('/add', methods=['GET', 'POST'])
-def add():
+def add_equipment():
     if request.method == 'POST':
         data = (
             request.form['model'],
@@ -72,25 +50,19 @@ def add():
             request.form['status'],
             request.form['specifications']
         )
-        conn = sqlite3.connect(DATABASE)
-        conn.execute('''
-            INSERT INTO equipment (
-                model, mac_address, owner, supplier, supplier_date,
-                warranty, lpo_number, status, specifications
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', data)
-        conn.commit()
-        conn.close()
+        with sqlite3.connect(DATABASE) as conn:
+            conn.execute('''
+                INSERT INTO equipment (
+                    model, mac_address, owner, supplier,
+                    supplier_date, warranty, lpo_number, status, specifications
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', data)
         return redirect(url_for('index'))
     return render_template('add.html')
 
-
+# ✅ Edit equipment
 @app.route('/edit/<int:id>', methods=['GET', 'POST'])
-def edit(id):
-    conn = sqlite3.connect(DATABASE)
-    conn.row_factory = sqlite3.Row
-    item = conn.execute('SELECT * FROM equipment WHERE id = ?', (id,)).fetchone()
-
+def edit_equipment(id):
     if request.method == 'POST':
         data = (
             request.form['model'],
@@ -104,49 +76,54 @@ def edit(id):
             request.form['specifications'],
             id
         )
-        conn.execute('''
-            UPDATE equipment SET
-                model = ?, mac_address = ?, owner = ?, supplier = ?, supplier_date = ?,
-                warranty = ?, lpo_number = ?, status = ?, specifications = ?
-            WHERE id = ?
-        ''', data)
-        conn.commit()
-        conn.close()
+        with sqlite3.connect(DATABASE) as conn:
+            conn.execute('''
+                UPDATE equipment SET
+                    model=?, mac_address=?, owner=?, supplier=?,
+                    supplier_date=?, warranty=?, lpo_number=?, status=?, specifications=?
+                WHERE id=?
+            ''', data)
         return redirect(url_for('index'))
 
-    conn.close()
+    with sqlite3.connect(DATABASE) as conn:
+        cursor = conn.execute('SELECT * FROM equipment WHERE id=?', (id,))
+        item = cursor.fetchone()
     return render_template('edit.html', item=item)
 
-
+# ✅ Delete equipment
 @app.route('/delete/<int:id>')
-def delete(id):
-    conn = sqlite3.connect(DATABASE)
-    conn.execute('DELETE FROM equipment WHERE id = ?', (id,))
-    conn.commit()
-    conn.close()
+def delete_equipment(id):
+    with sqlite3.connect(DATABASE) as conn:
+        conn.execute('DELETE FROM equipment WHERE id=?', (id,))
     return redirect(url_for('index'))
 
-
+# ✅ Upload Excel file
 @app.route('/upload', methods=['GET', 'POST'])
-def upload():
+def upload_excel():
     if request.method == 'POST':
         file = request.files['file']
-        if file:
-            try:
-                df = pd.read_excel(file, engine='openpyxl')
-                expected = {'model', 'mac_address', 'owner', 'supplier', 'supplier_date',
-                            'warranty', 'lpo_number', 'status', 'specifications'}
-                if expected.issubset(set(df.columns)):
-                    conn = sqlite3.connect(DATABASE)
-                    df.to_sql('equipment', conn, if_exists='append', index=False)
-                    conn.close()
-                    return redirect(url_for('index'))
-                else:
-                    return "Missing columns in Excel file.", 400
-            except Exception as e:
-                return f"Error reading file: {e}", 500
+        if file.filename.endswith('.xlsx'):
+            df = pd.read_excel(file, engine='openpyxl')
+            expected_columns = {'model', 'mac_address', 'owner', 'supplier',
+                                'supplier_date', 'warranty', 'lpo_number', 'status', 'specifications'}
+            if set(df.columns) >= expected_columns:
+                with sqlite3.connect(DATABASE) as conn:
+                    for _, row in df.iterrows():
+                        conn.execute('''
+                            INSERT INTO equipment (
+                                model, mac_address, owner, supplier,
+                                supplier_date, warranty, lpo_number, status, specifications
+                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        ''', tuple(row[col] for col in expected_columns))
+                return redirect(url_for('index'))
+            else:
+                return "Excel file missing required columns", 400
     return render_template('upload.html')
 
+# ✅ Run the app
+import os
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=True)
+
