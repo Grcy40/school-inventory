@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Equipment</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #e0f7fa, #80deea);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .form-container {
+            background-color: white;
+            padding: 35px 45px;
+            border-radius: 20px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            width: 400px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #333;
+        }
+
+        label {
+            font-weight: 600;
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        button {
+            margin-top: 25px;
+            background-color: #00796b;
+            color: white;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #004d40;
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+            color: #444;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .back-link:hover {
+            color: #000;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>Add New Equipment</h2>
+        <form method="POST">
+            <label for="model">Model</label>
+            <input type="text" name="model" id="model" required>
+
+            <label for="mac_address">MAC Address</label>
+            <input type="text" name="mac_address" id="mac_address" required>
+
+            <label for="owner">Owner</label>
+            <input type="text" name="owner" id="owner">
+
+            <label for="supplier">Supplier</label>
+            <input type="text" name="supplier" id="supplier">
+
+            <label for="supplier_date">Supplier Date</label>
+            <input type="date" name="supplier_date" id="supplier_date">
+
+            <label for="warranty">Warranty</label>
+            <input type="text" name="warranty" id="warranty">
+
+            <label for="lpo_number">LPO Number</label>
+            <input type="text" name="lpo_number" id="lpo_number">
+
+            <label for="status">Status</label>
+            <select name="status" id="status">
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+                <option value="In Repair">In Repair</option>
+            </select>
+
+            <label for="specifications">Specifications</label>
+            <textarea name="specifications" id="specifications" rows="3"></textarea>
+
+            <button type="submit">Add Equipment</button>
+        </form>
+        <a href="{{ url_for('index') }}" class="back-link">← Back to Inventory</a>
+    </div>
+</body>
+</html>

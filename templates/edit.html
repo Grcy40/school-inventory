@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Inventory Item</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #e0f7fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            animation: flipIn 0.6s ease-in-out;
+        }
+
+        .form-container {
+            background: white;
+            padding: 30px 40px;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            width: 500px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 24px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-top: 12px;
+            font-weight: 600;
+        }
+
+        input, select, textarea {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            margin-top: 6px;
+        }
+
+        button {
+            margin-top: 20px;
+            background-color: #2196F3;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #1976D2;
+        }
+
+        a {
+            text-align: center;
+            display: block;
+            margin-top: 16px;
+            text-decoration: none;
+            color: #555;
+        }
+
+        @keyframes flipIn {
+            from {
+                transform: rotateX(-90deg);
+                opacity: 0;
+            }
+            to {
+                transform: rotateX(0deg);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>Edit Inventory Item</h2>
+        <form method="POST">
+            <label>Model</label>
+            <input type="text" name="model" value="{{ item.model }}" required>
+
+            <label>MAC Address</label>
+            <input type="text" name="mac_address" value="{{ item.mac_address }}">
+
+            <label>Owner</label>
+            <input type="text" name="owner" value="{{ item.owner }}">
+
+            <label>Supplier</label>
+            <input type="text" name="supplier" value="{{ item.supplier }}">
+
+            <label>Supplier Date</label>
+            <input type="date" name="supplier_date" value="{{ item.supplier_date }}">
+
+            <label>Warranty</label>
+            <input type="text" name="warranty" value="{{ item.warranty }}">
+
+            <label>LPO Number</label>
+            <input type="text" name="lpo_number" value="{{ item.lpo_number }}">
+
+            <label>Status</label>
+            <select name="status">
+                <option value="Available" {% if item.status == "Available" %}selected{% endif %}>Available</option>
+                <option value="In Use" {% if item.status == "In Use" %}selected{% endif %}>In Use</option>
+                <option value="Damaged" {% if item.status == "Damaged" %}selected{% endif %}>Damaged</option>
+                <option value="Disposed" {% if item.status == "Disposed" %}selected{% endif %}>Disposed</option>
+            </select>
+
+            <label>Specifications</label>
+            <textarea name="specifications">{{ item.specifications }}</textarea>
+
+            <button type="submit">Save Changes</button>
+        </form>
+        <a href="/">Back to Inventory</a>
+    </div>
+</body>
+</html>
